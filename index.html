@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>US TV Shows</title>
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link type='text/css' rel='stylesheet' href="./resetCSS.css">
+    <link type='text/css' rel='stylesheet' href="./index.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
+    <noscript>JavaScript is not supported by your browser.</noscript>
+
+</head>
+
+<body>
+    <div id="wrapper">
+        <h1 id='heading'>US TV SHOWS</h1>
+    </div>
+    <script type="text/javascript">
+        var date = getDate();
+        var fetchURL = getSchedule(date);
+        var fetched = fetch(fetchURL);
+
+        // The getDate function extracts today's date from system and returns it in YYYY-MM-DD format.
+        function getDate() {
+            var currentDate = new Date();
+            var currentYear = currentDate.getFullYear();
+            var currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+            var currentDay = String(currentDate.getDate()).padStart(2, '0');
+            var todaysDate = currentYear + '-' + currentMonth + '-' + currentDay;
+            return todaysDate;
+        }
+
+        //  The getSchedule function generates date specific TVMaze URL ( required for fetching today's US TV show data) using the 
+        //  date from getDate function.
+        function getSchedule(todayScheduleDate) {
+            var countryCode = 'US';
+            var scheduleURL = "/schedule";
+            var baseURL = "https://api.tvmaze.com";
+
+            if (countryCode && todayScheduleDate) {
+                scheduleURL += "?country=" + countryCode + "&date=" + todayScheduleDate;
+            }
+            else if (countryCode && !todayScheduleDate) {
+                scheduleURL += "?country=" + countryCode;
+            }
+            else if (!countryCode && todayScheduleDate) {
+                scheduleURL += "?date=" + todayScheduleDate;
+            }
+            return (baseURL + scheduleURL);
+        }
+
+        // The fetch function gets the required TV show data using URL from getSchedule function.
+        fetch(fetchURL)
+            .then(resp => resp.json())
+            .then((output) => {
+                getTVShows(output);
+            }).catch(err => console.error(err));
+
+        // Using getTVShows function based on the number of US TV Shows bootstrap cards are generated (one for each show). 
+        function getTVShows(fetchedData) {
+            let showCount = Object.keys(fetchedData).length; // Number of TV Shows count
+
+            for (var i = 0; i < showCount; i++) {
+
+                let divCard = document.createElement('div');
+                divCard.className = 'card' + ' ' + 'cContain' + i;
+                document.body.appendChild(divCard);
+
+                let imgElement = document.createElement('img');
+                imgElement.className = 'card-img-top img-fluid' + ' ' + 'cImg' + i;
+                imgElement.src = (fetchedData[i].show.image != null) ? fetchedData[i].show.image.original : imgElement.alt = 'Image not available';
+                divCard.appendChild(imgElement);
+
+                let divCardBody = document.createElement('div');
+                divCardBody.className = 'card-body' + ' ' + 'cBody' + i;
+                divCard.appendChild(divCardBody);
+
+                let h3Element = document.createElement('h3');
+                h3Element.className = 'card-title text-uppercase' + ' ' + 'cTitle' + i;
+                h3Element.innerHTML = fetchedData[i].name;
+                divCardBody.appendChild(h3Element);
+
+                let buttonElement = document.createElement('button');
+                buttonElement.className = 'btn btn-success tvShowButton' + ' ' + 'showButton' + i;
+                buttonElement.innerHTML = fetchedData[i].show.name;
+                buttonElement.setAttribute('data-toggle', 'modal');
+                buttonElement.setAttribute('data-target', '#modalDiv' + i);
+                let iValue = i;
+                buttonElement.type = 'button';
+                // buttonElement.onclick = showMetaData(fetchedData, iValue);
+                buttonElement.addEventListener('click', function (event) { event.preventDefault(); showMetaData(fetchedData, iValue) });
+                divCardBody.appendChild(buttonElement);
+
+                let h5Element = document.createElement('h5');
+                h5Element.className = 'card-timestamp text-muted' + ' ' + 'cTime' + i;
+                h5Element.innerHTML = fetchedData[i].airdate + ' ' + fetchedData[i].airtime;
+                divCardBody.appendChild(h5Element);
+
+                let pElement = document.createElement('p');
+                pElement.className = 'card-text' + ' ' + 'cText' + i;
+                let pContent = fetchedData[i].show.summary;
+                if (pContent == null)
+                    pElement.innerHTML = ' ';
+                else if (pContent.length > 200)
+                    pElement.innerHTML = pContent.substring(3, 200) + '...';
+                else pElement.innerHTML = pContent;
+                divCardBody.appendChild(pElement);
+
+                // The showMetaData function displays the show meta data in a bootstrap modal when clicked on the show's name button.
+                function showMetaData(fetchedData, i) {
+
+                    let modalDiv = document.createElement('div');
+                    modalDiv.className = 'modal fade';
+                    modalDiv.id = 'modalDiv' + i;
+                    modalDiv.setAttribute('tabindex', '-1');
+                    modalDiv.setAttribute('role', 'dialog');
+                    modalDiv.setAttribute('aria-hidden', 'true');
+                    modalDiv.setAttribute('aria-labelledby', 'h5id' + i);
+                    document.body.appendChild(modalDiv);
+
+                    let modalDialogDiv = document.createElement('div');
+                    modalDialogDiv.className = 'modal-dialog modal-dialog-centered';
+                    modalDialogDiv.setAttribute('role', 'document');
+                    modalDiv.appendChild(modalDialogDiv);
+
+                    let modalContentDiv = document.createElement('div');
+                    modalContentDiv.className = 'modal-content';
+                    modalDialogDiv.appendChild(modalContentDiv);
+
+                    let modalHeaderDiv = document.createElement('div');
+                    modalHeaderDiv.className = 'modal-header';
+                    modalContentDiv.appendChild(modalHeaderDiv);
+
+                    let buttonModalTitle = document.createElement('button');
+                    buttonModalTitle.className = 'modal-title btn btn-success';
+                    buttonModalTitle.id = 'h5id' + i;
+                    buttonModalTitle.innerHTML = fetchedData[i].show.name;
+                    modalHeaderDiv.appendChild(buttonModalTitle);
+
+                    let buttonCloseElement = document.createElement('button');
+                    buttonCloseElement.className = 'close';
+                    buttonCloseElement.type = 'button';
+                    buttonCloseElement.setAttribute('data-dismiss', 'modal');
+                    buttonCloseElement.setAttribute('aria-label', 'Close');
+                    modalHeaderDiv.appendChild(buttonCloseElement);
+
+                    let spanElement = document.createElement('span');
+                    spanElement.setAttribute('aria-hidden', 'true');
+                    spanElement.innerHTML = '&times;';
+                    buttonCloseElement.appendChild(spanElement);
+
+                    let modalBodyDiv = document.createElement('div');
+                    modalBodyDiv.className = 'modal-body';
+                    modalContentDiv.appendChild(modalBodyDiv);
+
+                    let todayShow = document.createElement('h1');
+                    todayShow.className = 'todayShow text-dark';
+                    todayShow.innerHTML = fetchedData[i].name;
+                    modalBodyDiv.appendChild(todayShow);
+
+                    let h3TSElement = document.createElement('h3');
+                    h3TSElement.className = 'showTimestamp text-dark text-muted text-right';
+                    h3TSElement.innerHTML = fetchedData[i].airtime + ' ' + fetchedData[i].airdate;
+                    modalBodyDiv.appendChild(h3TSElement);
+
+                    let pModelElement = document.createElement('p');
+                    pModelElement.className = 'showSummary text-center';
+                    pModelElement.innerHTML = '<br>' + 'SUMMARY' + '<br><br>' + fetchedData[i].show.summary;
+                    modalBodyDiv.appendChild(pModelElement);
+
+                    let showInfo = document.createElement('h3');
+                    showInfo.className = 'showInfo text-center text-primary';
+                    showInfo.innerHTML = '<br>' + 'Language  : ' + fetchedData[i].show.language + '<br><br>' +
+                        'Status    : ' + fetchedData[i].show.status + '<br><br>' +
+                        'Genre     : ' + fetchedData[i].show.genres + '<br><br>' +
+                        'Rating    : ' + fetchedData[i].show.rating.average + '<br><br>' +
+                        'Runtime   : ' + fetchedData[i].show.runtime + '<br><br>' +
+                        'Season    : ' + fetchedData[i].season + '<br><br>' +
+                        'Premiered : ' + fetchedData[i].show.premiered + '<br><br>' +
+                        'Type      : ' + fetchedData[i].show.type + '<br><br>';
+                    modalBodyDiv.appendChild(showInfo);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

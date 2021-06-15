@@ -1,0 +1,36 @@
+body {
+    font-family: 'Lato', sans-serif;
+}
+#heading {
+    margin: 1rem;
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 800;
+}
+.card{
+    display: inline-table;
+    margin: 1rem;
+    width: 18rem;
+    max-height: 80vh;
+    border: none;
+}
+.card-img-top {
+    width: 16rem;
+    height: 16rem;
+}
+.card-body {
+    width: 17rem;
+}
+.card-title {
+    font-weight: 800;
+}
+.tvShowButton {
+    max-width: 15rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.card-timestamp {
+    padding: 0.5rem 0;
+}
+
